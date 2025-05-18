@@ -7,7 +7,9 @@ import argparse
 import json
 import os
 from enum import Enum
-from random import choice
+import time
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 class TaskStatus(Enum):
     TODO = "todo"
@@ -66,7 +68,9 @@ def add_task(args):
         "id": len(tasks) + 1,
         "title": args.title,
         "description": args.description or "",
-        "status": args.status
+        "status": args.status,
+        "createdAt": time.strftime("%m/%d/%Y, %H:%M:%S", time.localtime()),
+        "updatedAt": None
     }
     tasks.append(new_task)
     save_tasks(tasks)
@@ -96,8 +100,13 @@ def show_tasks(args):
     
     for task in filtered_tasks:
         print(f"#{task['id']} [{task['status'].upper()}] {task['title']}")
+        print(f"Created: {task['createdAt']}")
         if args.verbose and task['description']:
-            print(f"    {task['description']}")
+            print(f"{task['description']}")
+            if task["updatedAt"]:
+                print(f"Updated: {task['updatedAt']}")
+
+
             
 def update_task(args):
     tasks = load_tasks()
@@ -113,7 +122,7 @@ def update_task(args):
         task["description"] = args.description
     if args.status:
         task["status"] = args.status
-    
+    task.update({"updatedAt": time.strftime("%m/%d/%Y, %H:%M:%S", time.localtime())})
     save_tasks(tasks)
     print(f"Updated task #{args.number}")
     
